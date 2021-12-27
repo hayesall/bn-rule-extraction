@@ -1,86 +1,24 @@
-# Copyright © 2020 Alexander L. Hayes
+# Copyright © 2021 Alexander L. Hayes
 
 """
 Extracting decision rules from Bayesian Networks
 """
 
+from bayes_rule_extraction import print_rules, ordinal_encode
 from pomegranate import BayesianNetwork
-from pomegranate import DiscreteDistribution
-from pomegranate import ConditionalProbabilityTable
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.model_selection import cross_val_predict
 from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import accuracy_score
 import numpy as np
+import pandas as pd
 
+data = pd.read_csv("toy_decision.csv")
+names = data.columns
+encoded, mapping = ordinal_encode(names, data)
 
-names = np.loadtxt("toy_decision.csv", max_rows=1, delimiter=",", dtype=str)
-data = np.loadtxt("toy_decision.csv", skiprows=1, delimiter=",", dtype=str)
-
-enc = OrdinalEncoder(dtype=np.float32)
-data = enc.fit_transform(data)
-print(enc.categories_)
-
-# TODO(hayesall): ``mapping`` is basically a "pretty-printer", this could
-#       probably be included as part of the ``print_rules`` function.
-mapping = {}
-for variable_name, possible_values in zip(names, enc.categories_):
-    for i, value_name in enumerate(possible_values):
-
-        from_this = variable_name + " = " + str(float(i))
-        to_that = variable_name + " = " + value_name
-        mapping[from_this] = to_that
-
-y = data.T[0]
-X = data.T[1:].T
-
-def print_rules(pom_model, variable_mapping):
-
-    for i in range(len(model.states)):
-
-        if isinstance(model.states[i].distribution, DiscreteDistribution):
-            print(names[i], model.states[i].distribution.parameters)
-
-        else:
-            # Assume isinstance Categorical
-
-            cpt = np.array(model.states[i].distribution.parameters[0])
-            print("\n\n")
-
-            for row in cpt:
-
-                par_condition = "IF ("
-                for j, par in enumerate([names[p] for p in model.structure[i]]):
-
-                    seen = par + " = " + str(row[j])
-                    if seen in variable_mapping:
-                        par_condition += variable_mapping[seen]
-                    else:
-                        par_condition += seen
-
-                    par_condition += " ^ "
-
-                par_condition = par_condition[:-3]
-
-                par_condition += ") THEN ("
-
-                seen = names[i] + " = " + str(row[-2])
-                if seen in variable_mapping:
-                    par_condition += variable_mapping[seen]
-                else:
-                    par_condition += seen
-
-                par_condition += ")"
-
-                _conf_factor = row[-1] / (1 - row[-1])
-
-                if _conf_factor >= 1.0:
-                    print(par_condition)
-                    print("\tCF = {0:0.2f}".format(_conf_factor))
-
+X = encoded[:, 1:]
+y = encoded[:, 0]
 
 loo = LeaveOneOut()
-
 clf = BayesianNetwork()
 
 required = [
@@ -100,14 +38,13 @@ for train_index, test_index in loo.split(X):
         learning_data,
         algorithm='exact',
         include_edges=required,
-        state_names=[str(name) for name in names],
+        state_names=names,
         max_parents=-1,
     )
-    print(model.structure)
 
     if test_index == 0:
         print("Decision rules extracted from the first test:\n")
-        print_rules(model, mapping)
+        print_rules(model, names, mapping)
 
     nan_column = np.empty(y_test.shape)
     nan_column[:] = np.nan
@@ -119,4 +56,4 @@ for train_index, test_index in loo.split(X):
         [item[0].items()[1][1] > 0.5 for item in pred][0]
     )
 
-print(accuracy_score(np.array(predictions), y))
+print(accuracy_score(np.asarray(predictions), y))
