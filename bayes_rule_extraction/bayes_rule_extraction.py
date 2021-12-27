@@ -10,6 +10,16 @@ import numpy as np
 
 
 def ordinal_encode(names, data):
+    """Create an ordinal dataset and a human-readable mapping
+
+    Arguments:
+        names: Variable names as a list of strings
+        data: Array/Dataframe of data
+
+    Returns:
+        An ordinal-encoded version of the data and a dictionary
+        mapping the ordinal values to human-readable names.
+    """
     encoder = OrdinalEncoder(dtype=np.float32)
     encoded = encoder.fit_transform(data)
     mapping = {}
@@ -24,6 +34,18 @@ def ordinal_encode(names, data):
 
 
 def print_rules(pom_model, variable_names, variable_mapping):
+    """Extract rules from a pomegranate Bayesian network
+
+    Arguments:
+        pom_model: A Bayesian Network (e.g. fit using `from_samples`)
+        variable_names: Variable names as a list of strings
+        variable_mapping: The second output from `ordinal_encode`
+
+    Returns:
+        None. Prints a list of prior probabilities for nodes with no
+        parents, or a list of `IF/THEN` rules with confidences between
+        `1.0 -- Inf`.
+    """
 
     unconditioned_rules = []
     conditioned_rules = []
