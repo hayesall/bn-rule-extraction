@@ -1,4 +1,4 @@
-# Rule Extraction from Bayesian Networks
+# Extracting Interpretable Rules from Bayesian Networks
 
 Based on the 2010 paper: "*Bayesian rule learning for biomedical data mining*"
 by Vanathi Gopalakrishnan, Jonathan L. Lustgarten, Shyam Visweswaran, and
@@ -21,10 +21,17 @@ Can be turned into the following rules:
 
 ```text
 Probabilities:
-- Outlook       {'overcast': 0.31, 'rain': 0.38, 'sunny': 0.31}
-- Temperature   {'cool': 0.30, 'hot': 0.23, 'mild': 0.47}
-- Wind          {'strong': 0.46, 'weak': 0.54}
-
+- Outlook
+  P( Outlook = sunny ) = 0.36
+  P( Outlook = overcast ) = 0.29
+  P( Outlook = rain ) = 0.36
+- Temperature
+  P( Temperature = hot ) = 0.29
+  P( Temperature = mild ) = 0.43
+  P( Temperature = cool ) = 0.29
+- Wind
+  P( Wind = weak ) = 0.57
+  P( Wind = strong ) = 0.43
 
 IF (Outlook = overcast ^ Wind = strong) THEN (PlayTennis = yes)
 	CF = inf
@@ -39,47 +46,66 @@ IF (Outlook = sunny ^ Wind = strong) THEN (PlayTennis = no)
 IF (Outlook = sunny ^ Wind = strong) THEN (PlayTennis = yes)
 	CF = 1.00
 IF (Outlook = sunny ^ Wind = weak) THEN (PlayTennis = no)
-	CF = 1.00
-IF (Outlook = sunny ^ Wind = weak) THEN (PlayTennis = yes)
-	CF = 1.00
-
-
+	CF = 2.00
 IF (Temperature = cool) THEN (Humidity = normal)
 	CF = inf
 IF (Temperature = hot) THEN (Humidity = high)
-	CF = 2.00
+	CF = 3.00
 IF (Temperature = mild) THEN (Humidity = high)
 	CF = 2.00
 ```
 
 ## Getting Started
 
-Install requirements:
+### Notebook Demos
+
+Some demos are implemented as Jupyter notebooks:
+
+| Notebook | Colab Link | View on GitHub |
+| :---- | :---- | ----: |
+| Mitchell Tennis Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) | [`tennis.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) |
+| Adult Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) | [`adult.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) |
+
+### Working with the Python package
+
+Clone + install requirements:
 
 ```console
-pip install -r requirements.txt
+git clone https://github.com/hayesall/bn-rule-extraction.git
+cd bn-rule-extraction
+pip install -e .
 ```
 
-Run `rule_extraction.py`. This shows rules and LOOCV accuracy as a metric.
+The `bayes_rule_extraction` package exposes two functions: `print_rules` and `ordinal_encode`.
 
-```console
-python rule_extraction.py
-```
+Here's a minimal working example:
 
-A `scikit-learn` decision tree is included for comparison
-(C4.5 was a baseline in the paper). This prints LOOCV accuracy as a metric.
+```python
+from bayes_rule_extraction import ordinal_encode, print_rules
+from pomegranate import BayesianNetwork
+import pandas as pd
 
-```console
-python decision_tree.py
+df = pd.read_csv("https://raw.githubusercontent.com/hayesall/bn-rule-extraction/main/toy_decision.csv")
+
+encoded, mapping = ordinal_encode(df.columns, df)
+
+# Encode a constraint that "PlayTennis" cannot be the parent of any other node.
+excluded_edges = [tuple([0, i]) for i in range(1, len(df.columns))]
+
+model = BayesianNetwork().from_samples(
+    encoded,
+    exclude_edges=excluded_edges,
+    state_names=df.columns,
+)
+
+print_rules(model, df.columns, mapping)
 ```
 
 ## Notes
 
-- This is currently built for personal use and early experimentation, some major
-  cleanup is needed before production use or using it as a baseline in your work.
-- *Gopalakrishnan 2010* used a modified version of K2 for structure learning,
-  *this uses* `pomegranate.BayesianNetwork.from_samples` method for fitting
-  exact structures.
+- This is implemented as an "*explanation method*" to help explain a Bayesian Network.
+  It's not currently possible to use the extracted rules directly for classification.
+- *Gopalakrishnan 2010* used a modified version of K2 for structure learning.
 - The `include_edges` parameter in the `pomegranate.BayesianNetwork.from_samples`
   method seems to be required to learn "*interesting*" or "*useful*" rules,
   especially if there is a specific outcome variable (like `PlayTennis`)
