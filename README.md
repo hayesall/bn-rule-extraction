@@ -4,6 +4,15 @@ Based on the 2010 paper: "*Bayesian rule learning for biomedical data mining*"
 by Vanathi Gopalakrishnan, Jonathan L. Lustgarten, Shyam Visweswaran, and
 Gregory F. Cooper.
 
+## Notebook Demos
+
+Some demos are implemented as Jupyter notebooks:
+
+| Notebook | Colab Link | View on GitHub |
+| :---- | :---- | ----: |
+| Mitchell Tennis Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) | [`tennis.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) |
+| Adult Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) | [`adult.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) |
+
 ## Overview
 
 Given a Bayesian Network structure and parameters in the form of conditional
@@ -57,23 +66,12 @@ IF (Temperature = mild) THEN (Humidity = high)
 
 ## Getting Started
 
-### Notebook Demos
-
-Some demos are implemented as Jupyter notebooks:
-
-| Notebook | Colab Link | View on GitHub |
-| :---- | :---- | ----: |
-| Mitchell Tennis Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) | [`tennis.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/tennis.ipynb) |
-| Adult Dataset | [![](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) | [`adult.ipynb`](https://github.com/hayesall/bn-rule-extraction/blob/main/docs/notebooks/adult.ipynb) |
-
 ### Working with the Python package
 
-Clone + install requirements:
+Install requirements:
 
 ```console
-git clone https://github.com/hayesall/bn-rule-extraction.git
-cd bn-rule-extraction
-pip install -e .
+pip install git+https://github.com/hayesall/bn-rule-extraction.git
 ```
 
 The `bayes_rule_extraction` package exposes two functions: `print_rules` and `ordinal_encode`.
