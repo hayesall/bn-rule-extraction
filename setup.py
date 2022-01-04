@@ -19,7 +19,7 @@ setup(
     long_description_content_type="text/markdown",
     license="MIT License",
     python_requires=">=3.7",
-    install_requires=["numpy>=1.19.0", "pomegranate>=0.14.0"],
+    install_requires=["numpy>=1.19.0", "scikit-learn>=0.23.0", "pomegranate>=0.14.0"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Development Status :: 4 - Beta",
